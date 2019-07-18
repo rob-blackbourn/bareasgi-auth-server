@@ -1,0 +1,41 @@
+app:
+  port: 11000
+  login_expiry: 1d
+  path_prefix: /auth
+  token_renewal_path: /renew_token
+
+token_manager:
+  cookie_name: bareasgi-auth
+  secret: "not so secret"
+  token_expiry: 1h
+  domain: example.com
+  issuer: example.com
+  path: /
+  max_age: 1d
+
+
+
+postgres:
+  url: postgresql://admin:password@postgres01:5432/mydb
+
+logging:
+  version: 1
+  formatters:
+    simple:
+      format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+      stream: ext://sys.stdout
+  loggers:
+    dale:
+      level: DEBUG
+      handlers:
+        - console
+      propagate: false
+  root:
+    level: WARNING
+    handlers:
+      - console
