@@ -1,18 +1,30 @@
+"""
+Application
+"""
+
+import pkg_resources
+import os
+
 from bareasgi import Application
 from bareasgi_cors import CORSMiddleware
 import bareasgi_jinja2
-from easydict import EasyDict as edict
+from easydict import EasyDict
 import jinja2
-import pkg_resources
-import os
 from bareasgi_auth_common import JwtAuthenticator
 from bareasgi_auth_common import TokenManager
 from .auth_controller import AuthController
 from .auth_service import AuthService
-from .auth_provider import PostgresAuthProvider
+from .auth_provider import SqliteAuthProvider
 
 
-def make_app(config: edict) -> Application:
+def make_application(config: EasyDict) -> Application:
+    """Make the application
+    
+    :param config: The config
+    :type config: EasyDict
+    :return: The application
+    :rtype: Application
+    """
     templates_folder = pkg_resources.resource_filename(__name__, 'templates')
 
     cors_middleware = CORSMiddleware()
@@ -35,7 +47,7 @@ def make_app(config: edict) -> Application:
     cookie_name = config.token_manager.cookie_name
     max_age = config.token_manager.max_age
 
-    auth_service = AuthService(PostgresAuthProvider(config.postgres.url))
+    auth_service = AuthService(SqliteAuthProvider(config.sqlite.url))
     token_manager = TokenManager(
         secret,
         token_expiry,
@@ -46,7 +58,7 @@ def make_app(config: edict) -> Application:
         max_age
     )
 
-    token_renewal_path = config.app.path_prefix + config.app.token_renewal_path
+    token_renewal_path = config.app.path_prefix + config.token_manager.token_renewal_path
     authenticator = JwtAuthenticator(token_renewal_path, token_manager)
 
     auth_controller = AuthController(
