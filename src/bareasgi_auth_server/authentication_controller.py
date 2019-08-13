@@ -25,13 +25,13 @@ from bareasgi_auth_common import JwtAuthenticator
 from bareasgi_auth_common import TokenManager
 import jwt
 
-from .auth_service import AuthService
+from .authentication_service import AuthenticationService
 
 # pylint: disable=invalid-name
 logger = logging.getLogger(__name__)
 
 
-class AuthController:
+class AuthenticationController:
     """Authentication controller"""
 
     def __init__(
@@ -39,7 +39,7 @@ class AuthController:
             path_prefix: str,
             login_expiry: timedelta,
             token_manager: TokenManager,
-            auth_service: AuthService,
+            authentication_service: AuthenticationService,
             authenticator: JwtAuthenticator
     ) -> None:
         """Initialise the authentication controller
@@ -50,15 +50,15 @@ class AuthController:
         :type login_expiry: timedelta
         :param token_manager: The token manager
         :type token_manager: TokenManager
-        :param auth_service: The authentication service
-        :type auth_service: AuthService
+        :param authentication_service: The authentication service
+        :type authentication_service: AuthenticationService
         :param authenticator: The authenticator
         :type authenticator: JwtAuthenticator
         """
         self.path_prefix = path_prefix
         self.login_expiry = login_expiry
         self.token_manager = token_manager
-        self.auth_service = auth_service
+        self.authentication_service = authentication_service
         self.authenticator = authenticator
 
     def add_routes(self, app: Application) -> Application:
@@ -156,7 +156,7 @@ class AuthController:
             username = body['username'][0]
             password = body['password'][0]
 
-            if not await self.auth_service.is_password_for_user(username, password):
+            if not await self.authentication_service.is_password_for_user(username, password):
                 raise RuntimeError('Invalid username or password')
 
             now = datetime.utcnow()
@@ -269,7 +269,7 @@ class AuthController:
                 )
                 return text_response(response_code.UNAUTHORIZED, None, 'Authentication expired')
 
-            if not self.auth_service.is_valid(user):
+            if not self.authentication_service.is_valid(user):
                 return response_code.FORBIDDEN, None, None
 
             logger.debug('Token renewed for %s', user)

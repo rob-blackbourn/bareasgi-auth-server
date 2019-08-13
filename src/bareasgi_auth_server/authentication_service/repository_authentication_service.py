@@ -2,19 +2,22 @@
 Authentication Service
 """
 
-from .auth_provider import AuthProvider
+from ..authentication_repository import AuthenticationRepository
+from .authentication_service import AuthenticationService
 
 
-class AuthService:
-    """Authentication service"""
+class RepositoryAuthenticationService(AuthenticationService):
+    """Repository Authentication service"""
 
-    def __init__(self, auth_provider: AuthProvider) -> None:
+    def __init__(
+            self, authentication_repository: AuthenticationRepository
+    ) -> None:
         """Initialise the authentication service
 
-        :param auth_provider: The authentication provider
-        :type auth_provider: AuthProvider
+        :param authentication_repository: The authentication provider
+        :type authentication_repository: AuthProvider
         """
-        self.auth_provider = auth_provider
+        self.authentication_repository = authentication_repository
         self._is_initialised = False
 
     async def is_password_for_user(self, name: str, password: str) -> bool:
@@ -28,7 +31,7 @@ class AuthService:
         :rtype: bool
         """
         await self._initialise()
-        pwd = await self.auth_provider.read(name)
+        pwd = await self.authentication_repository.read(name)
         return pwd.is_valid_password(password)
 
 
@@ -41,10 +44,10 @@ class AuthService:
         :rtype: bool
         """
         await self._initialise()
-        pwd = await self.auth_provider.read(email)
+        pwd = await self.authentication_repository.read(email)
         return pwd is not None and pwd.state == 'active'
 
     async def _initialise(self):
         if self._is_initialised:
             return
-        await self.auth_provider.initialise()
+        await self.authentication_repository.initialise()

@@ -127,6 +127,14 @@ baretypes = ">=3.0.5"
 
 [[package]]
 category = "main"
+description = "Python 3 module for accessing LDAP directory servers."
+name = "bonsai"
+optional = false
+python-versions = "*"
+version = "1.1.0"
+
+[[package]]
+category = "main"
 description = "Composable command line interface toolkit"
 name = "click"
 optional = false
@@ -415,7 +423,7 @@ version = "0.5.2"
 postgres = ["aiopg", "sqlalchemy"]
 
 [metadata]
-content-hash = "e5271606815c9c6c80a20f5b05be9c01969f7ca79a5739213f6186546c4aca4e"
+content-hash = "81207abef16a52f1b1a4cba714014e51258cd7f25d511e8a1c94bcb2ddc9c6eb"
 python-versions = "^3.7"
 
 [metadata.hashes]
@@ -431,6 +439,7 @@ bareasgi-jinja2 = ["981aa05751ef1f95b35796feb7af311ac5b355c08ca2f8ed9080427019ce
 bareclient = ["1df8c923ad75071672a0aeb6180b500ac9f957ed3de6a40326f3b7c64fe1a0bf", "a09c9a9a52ebd67d5f7f8c291296210bb1d1ea27f8e2dc8294fc819a7e246f74"]
 baretypes = ["bed6d62a68fc5988f6ab2677e1ba165c12009d3bd9b6e0a365c1131d0fbe38fd", "fa2416de478c1dd0641e284f75cf8b6897fc2e78eb94cd25814fa4f63cf28010"]
 bareutils = ["49e9102eaba194d914d971d2290929ee7d8ba724e79be0b7ba9724bc42680954", "6b6fc1788ad8af0ec4a80e3c700c3cc2041be0a774dd4d7a6592e3e08f8c0a63"]
+bonsai = ["1400386f5adc1ab3af02696b69f37c8eecfd89d1d97faf2cf62f7649ef10d8cc", "2a72fdd0574ae111b63959347622512cbf8eab867d813024386cffefc90bb6f2", "638b221ff0034d74c84896fa49a13620a93e72efb9b6f373b46ecda073c85b34", "6572f10c40f5ab9b85e3afaa4d49c7bf46538e9880909fc7b0688eb6cdb7f333", "a0ac30f37f52220ea0b53c82d53936417e6dd6f9760468c23c9c20522b827205", "b841f3dcb4264b42a7ad15763bd3d5450ef05f456f5192eebdde9b7910be893b", "cf4da3b78b58e0437ead94f653004cdf78d29f219d6d87c9a2cbe512f3a2df5d", "df8ef71c206363e9a9668caa8fa56dcd4d9d1d024acac510288f572b4d83251b", "e96e6a6bed6a72041dcfe8e2b1490557a78f5ba7c0d7f43b46823abbfa9853ad", "ed8d6d86baa9a2cc48936e307db1b7b259366e1efc53c512c8aea4415aa96f83"]
 click = ["2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13", "5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"]
 colorama = ["05eed71e2e327246ad6b38c540c4a3117230b19679b875190486ddd2d721422d", "f8ac84de7840f5b9c4e3347b3c1eaa50f7e49c2b07596221daec5edaabbd7c48"]
 easydict = ["3f3f0dab07c299f0f4df032db1f388d985bb57fa4c5be30acd25c5f9a516883b"]

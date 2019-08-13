@@ -5,10 +5,10 @@ from typing import Optional
 import aiosqlite
 
 from .password import Password
-from .auth_provider import AuthProvider
+from .authentication_repository import AuthenticationRepository
 
 
-class SqliteAuthProvider(AuthProvider):
+class SqliteAuthenticationRepository(AuthenticationRepository):
     """Sqlite Auth Provider"""
 
     def __init__(self, dsn) -> None:

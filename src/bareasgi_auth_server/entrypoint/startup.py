@@ -5,6 +5,7 @@ from bareasgi_auth_server import start_server
 
 
 def main():
+    """Main entry point"""
     start_server(sys.argv)
 
 

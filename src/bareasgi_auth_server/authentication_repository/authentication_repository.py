@@ -6,12 +6,12 @@ from typing import Optional
 
 from .password import Password
 
-class AuthProvider(metaclass=ABCMeta):
-    """The base class for authentication providers"""
+class AuthenticationRepository(metaclass=ABCMeta):
+    """The base class for authentication repositories"""
 
     @abstractmethod
     async def initialise(self) -> None:
-        """Initialise the authentication provider"""
+        """Initialise the authentication repository"""
 
     @abstractmethod
     async def create(self, password: Password) -> Optional[Password]:
