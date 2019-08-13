@@ -14,7 +14,7 @@ from bareasgi_auth_common import JwtAuthenticator
 from bareasgi_auth_common import TokenManager
 from .authentication_controller import AuthenticationController
 from .authentication_service import RepositoryAuthenticationService
-from .authentication_repository import SqliteAuthenticationRepository
+from .auth_repository import SqliteAuthenticationRepository
 
 
 def make_application(config: EasyDict) -> Application:

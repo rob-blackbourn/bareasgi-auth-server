@@ -14,7 +14,6 @@ class SqliteAuthenticationRepository(AuthenticationRepository):
     def __init__(self, dsn) -> None:
         self._dsn = dsn
 
-
     async def create(self, password: Password) -> Optional[Password]:
         try:
             async with aiosqlite.connect(self._dsn) as conn:
@@ -64,4 +63,11 @@ class SqliteAuthenticationRepository(AuthenticationRepository):
                     UNIQUE(name)
                 )
             """)
-        await self.create(Password.create("admin", "trustno1", "active"))
+            if await self.read('admin') is None:
+                admin = await self.create(
+                    Password.create(
+                        'admin',
+                        'trustno1',
+                        'active'
+                    )
+                )

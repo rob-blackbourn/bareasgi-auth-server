@@ -2,7 +2,7 @@
 Authentication Service
 """
 
-from ..authentication_repository import AuthenticationRepository
+from ..auth_repository import AuthenticationRepository
 from .authentication_service import AuthenticationService
 
 
