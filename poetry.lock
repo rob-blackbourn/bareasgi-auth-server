@@ -62,7 +62,7 @@ description = ""
 name = "bareasgi-auth-common"
 optional = false
 python-versions = ">=3.7,<4.0"
-version = "1.1.0"
+version = "1.3.0"
 
 [package.dependencies]
 PyJWT = ">=1.7,<2.0"
@@ -425,7 +425,7 @@ atomicwrites = ["03472c30eb2c5d1ba9227e4c2ca66ab8287fbfbbda3888aa93dc2e28fc6811b
 attrs = ["69c0dbf2ed392de1cb5ec704444b08a5ef81680a61cb899dc08127123af36a79", "f0b870f674851ecbfbbbd364d6b5cbdff9dcedbc7f3f5e18a6891057f21fe399"]
 autopep8 = ["4d8eec30cc81bc5617dbf1218201d770dc35629363547f17577c61683ccfb3ee"]
 bareasgi = ["4e0a8f337ed9d2bf2bd1ecf6a87e27419173f38b883c48e924fca5849336b3d9", "7a08d31fdcf773cb6b4bd0fa4e9b76d5c06b9cc7f1377101a04cd95b860a08cd"]
-bareasgi-auth-common = ["6d97cc563275d7b6aedc54eee6b2a72ba61ccfff0154f1b490cd5c11ca26d776", "8cdb17d496fae7cb22cca983660cd442333d5c0a0d9362537e6acb8bdc6b0ba9"]
+bareasgi-auth-common = ["0ad24b8707dae53d0b3e5b305501b9247739a4066bef5455c83846513716af59", "41386b828f93b0ef0a9062e86b9c6878cb3b247baf9dcaee6457c3d7a7a2dd6b"]
 bareasgi-cors = ["e5b265ccbc3b2a999235e2c4ca443d143080c1f26708b4029b57cb4d4ed41b23", "fe304de13fedcde567bd1126a852c26a8fe7d76c0518f496ba4c215c41b80a4e"]
 bareasgi-jinja2 = ["981aa05751ef1f95b35796feb7af311ac5b355c08ca2f8ed9080427019ce028e", "d4578201ac761426e887c3537a33d07cdf463eed379fd8c4096508c9068adf19"]
 bareclient = ["1df8c923ad75071672a0aeb6180b500ac9f957ed3de6a40326f3b7c64fe1a0bf", "a09c9a9a52ebd67d5f7f8c291296210bb1d1ea27f8e2dc8294fc819a7e246f74"]

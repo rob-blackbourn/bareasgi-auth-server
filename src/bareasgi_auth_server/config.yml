@@ -1,9 +1,9 @@
 app:
   host: 127.0.0.1
-  port: 9009
+  port: 20101
   http_server: uvicorn
   login_expiry: 1d
-  path_prefix: /test
+  path_prefix: /auth
   ssl:
     enabled: true
     keyfile: ~/.keys/server.key
@@ -13,8 +13,8 @@ token_manager:
   cookie_name: bareasgi-auth
   secret: "not so secret"
   token_expiry: 1h
-  domain: example.com
-  issuer: example.com
+  domain: ${AUTH_DOMAIN}
+  issuer: ${AUTH_ISSUER}
   path: /
   max_age: 1d
   token_renewal_path: /renew_token
