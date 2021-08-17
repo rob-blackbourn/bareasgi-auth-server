@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from abc import ABCMeta, abstractmethod
-from typing import AbstractSet
+from typing import AbstractSet, Optional
 
 
 class AuthorizationRepository(metaclass=ABCMeta):
@@ -11,7 +11,7 @@ class AuthorizationRepository(metaclass=ABCMeta):
     @abstractmethod
     async def add_role(self, name: str, description: Optional[str] = None) -> bool:
         """Add a role
-        
+
         :param name: The name
         :type name: str
         :param description: The description, defaults to None
@@ -23,7 +23,7 @@ class AuthorizationRepository(metaclass=ABCMeta):
     @abstractmethod
     async def delete_role(self, name: str) -> bool:
         """Delete a role
-        
+
         :param name: The name
         :type name: str
         :return: True if the roles was deleted, otherwise false.
@@ -32,7 +32,7 @@ class AuthorizationRepository(metaclass=ABCMeta):
 
     async def has_role(self, user: str, role: str) -> bool:
         """Discover whether the user has a role
-        
+
         :param user: The user name
         :type user: str
         :param role: The role name
@@ -44,13 +44,13 @@ class AuthorizationRepository(metaclass=ABCMeta):
     @abstractmethod
     async def role_exists(self, role: str) -> bool:
         """Discover if a roles exists
-        
+
         :param role: The role name
         :type role: str
         :return: True if the role exists, otherwise false.
         :rtype: bool
         """
-        
+
     @abstractmethod
     async def initialise(self) -> None:
         """Initialise the member repository"""
@@ -58,7 +58,7 @@ class AuthorizationRepository(metaclass=ABCMeta):
     @abstractmethod
     async def grant(self, user: str, role: str) -> bool:
         """Grant a role to a user
-        
+
         :param user: The user name
         :type user: str
         :param role: The role name
@@ -71,7 +71,7 @@ class AuthorizationRepository(metaclass=ABCMeta):
     @abstractmethod
     async def revoke(self, user: str, role: str) -> bool:
         """Revoke a role from a user
-        
+
         :param user: The user name
         :type user: str
         :param role: The role name
@@ -80,11 +80,11 @@ class AuthorizationRepository(metaclass=ABCMeta):
         :rtype: bool
         """
         ...
-    
+
     @abstractmethod
     async def users(self, role: str) -> AbstractSet[str]:
         """Return the users that have been granted the role
-        
+
         :param role: The role name
         :type role: str
         :return: A set of the users that have been granted the roles
@@ -95,7 +95,7 @@ class AuthorizationRepository(metaclass=ABCMeta):
     @abstractmethod
     async def roles(self, user: str) -> AbstractSet[str]:
         """Return the groups that the user has been granted
-        
+
         :param user: The user
         :type user: str
         :return: The set of roles granted to the user
@@ -106,7 +106,7 @@ class AuthorizationRepository(metaclass=ABCMeta):
     @abstractmethod
     async def update(self, user: str, roles: AbstractSet[str]) -> bool:
         """Update the user to have the given roles
-        
+
         :param user: The user name
         :type user: str
         :param roles: The roles
