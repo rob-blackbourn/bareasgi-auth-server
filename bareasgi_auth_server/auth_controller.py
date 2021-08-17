@@ -44,8 +44,6 @@ class AuthController:
     def __init__(
             self,
             path_prefix: str,
-            login_expiry: timedelta,
-            token_manager: TokenManager,
             authenticator: JwtAuthenticator,
             auth_service: AuthService
     ) -> None:
@@ -53,16 +51,12 @@ class AuthController:
 
         Args:
             path_prefix (str): The path prefix.
-            login_expiry (timedelta): The length of time between login.
-            token_manager (TokenManager): [description]
             authenticator (JwtAuthenticator): [description]
             auth_service (AuthService): [description]
         """
         self.path_prefix = path_prefix
-        self.login_expiry = login_expiry
-        self.token_manager = token_manager
-        self.auth_service = auth_service
         self.authenticator = authenticator
+        self.auth_service = auth_service
 
     def add_routes(self, app: Application) -> Application:
         """Add the routes that are handled by the controller.
@@ -127,7 +121,7 @@ class AuthController:
         authorizations = await self.auth_service.authorizations(user_id)
 
         now = datetime.utcnow()
-        token = self.token_manager.encode(
+        token = self.authenticator.token_manager.encode(
             user_id,
             now,
             now,
@@ -165,7 +159,7 @@ class AuthController:
     ) -> HttpResponse:
         redirect = self._get_redirect(scope)
         token = await self._authenticate(scope, content)
-        cookie = self.token_manager.make_cookie(token)
+        cookie = self.authenticator.token_manager.make_cookie(token)
 
         LOGGER.debug('Sending token: %s', token)
 
@@ -184,7 +178,7 @@ class AuthController:
             content: Content
     ) -> HttpResponse:
         token = await self._authenticate(scope, content)
-        cookie = self.token_manager.make_cookie(token)
+        cookie = self.authenticator.token_manager.make_cookie(token)
 
         LOGGER.debug('Sending token: %s', token)
 
@@ -202,11 +196,11 @@ class AuthController:
             _content: Content
     ) -> HttpResponse:
         set_cookie = make_cookie(
-            self.token_manager.cookie_name,
+            self.authenticator.token_manager.cookie_name,
             b'',
             expires=timedelta(seconds=0),
-            domain=self.token_manager.domain,
-            path=self.token_manager.path,
+            domain=self.authenticator.token_manager.domain,
+            path=self.authenticator.token_manager.path,
             http_only=True
         )
         return response_code.NO_CONTENT, [(b'set-cookie', set_cookie)]
@@ -219,9 +213,10 @@ class AuthController:
             _content: Content
     ) -> HttpResponse:
         try:
-            token = self.token_manager.get_token_from_headers(scope['headers'])
+            token = self.authenticator.token_manager.get_token_from_headers(
+                scope['headers'])
 
-            token_status = self.authenticator.get_token_status(scope, token)
+            token_status = self.authenticator.get_token_status(token)
 
             if token_status == TokenStatus.EXPIRED:
                 token = await self._renew_token(scope)
@@ -232,7 +227,7 @@ class AuthController:
                     'Client requires authentication'
                 )
 
-            payload = self.token_manager.decode(token)
+            payload = self.authenticator.token_manager.decode(token)
 
             return json_response(response_code.OK, None, {'username': payload['sub']})
 
@@ -248,11 +243,12 @@ class AuthController:
             return response_code.INTERNAL_SERVER_ERROR
 
     async def _renew_token(self, scope: Scope) -> bytes:
-        token = self.token_manager.get_token_from_headers(scope['headers'])
+        token = self.authenticator.token_manager.get_token_from_headers(
+            scope['headers'])
         if token is None:
             raise UnauthorisedError(scope, 'authentication required')
 
-        payload = self.token_manager.decode(token)
+        payload = self.authenticator.token_manager.decode(token)
 
         user_id = payload['sub']
         issued_at = payload['iat']
@@ -265,7 +261,7 @@ class AuthController:
 
         now = datetime.utcnow()
 
-        login_expiry = issued_at + self.login_expiry
+        login_expiry = issued_at + self.authenticator.token_manager.session_expiry
         if now > login_expiry:
             LOGGER.info(
                 'Token too old for user "%s" issued at "%s" expired at "%s"',
@@ -286,7 +282,7 @@ class AuthController:
 
         # Renew the token keeping the "issued at" timestamp to ensure
         # reauthentication.
-        token = self.token_manager.encode(
+        token = self.authenticator.token_manager.encode(
             user_id,
             now,
             issued_at,
@@ -312,7 +308,7 @@ class AuthController:
         try:
             token = await self._renew_token(scope)
 
-            set_cookie = self.token_manager.make_cookie(token)
+            set_cookie = self.authenticator.token_manager.make_cookie(token)
 
             return response_code.NO_CONTENT, [(b'set-cookie', set_cookie)]
 
