@@ -32,14 +32,14 @@ from bareasgi_auth_common import (
 )
 import jwt
 
-from .authentication_service import AuthenticationService
+from .auth_service import AuthService
 from .types import BadRequestError
 
 LOGGER = logging.getLogger(__name__)
 
 
-class AuthenticationController:
-    """Authentication controller"""
+class AuthController:
+    """Authentication and authorization controller"""
 
     def __init__(
             self,
@@ -47,7 +47,7 @@ class AuthenticationController:
             login_expiry: timedelta,
             token_manager: TokenManager,
             authenticator: JwtAuthenticator,
-            auth_service: AuthenticationService
+            auth_service: AuthService
     ) -> None:
         """Initialise the authentication controller.
 
@@ -56,7 +56,7 @@ class AuthenticationController:
             login_expiry (timedelta): The length of time between login.
             token_manager (TokenManager): [description]
             authenticator (JwtAuthenticator): [description]
-            auth_service (AuthenticationService): [description]
+            auth_service (AuthService): [description]
         """
         self.path_prefix = path_prefix
         self.login_expiry = login_expiry

@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Any, Mapping, Optional
 
 
-class AuthenticationService(metaclass=ABCMeta):
+class AuthService(metaclass=ABCMeta):
     """A base class for authentication services"""
 
     @abstractmethod

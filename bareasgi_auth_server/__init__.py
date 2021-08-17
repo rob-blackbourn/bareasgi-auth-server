@@ -1,7 +1,9 @@
 """bareASGI auth server"""
 
-from .server import start_server
+from .auth_controller import AuthController
+from .auth_service import AuthService
 
 __all__ = [
-    'start_server'
+    'AuthController',
+    'AuthService'
 ]
