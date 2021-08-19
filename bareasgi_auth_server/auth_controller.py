@@ -3,7 +3,7 @@
 
 from datetime import datetime, timedelta
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 from urllib.error import HTTPError
 from urllib.parse import parse_qsl, urlparse
 
@@ -24,7 +24,6 @@ from baretypes import (
     Header
 )
 from bareasgi_auth_common import (
-    JwtAuthenticator,
     TokenManager,
     ForbiddenError,
     UnauthorisedError,
@@ -44,7 +43,7 @@ class AuthController:
     def __init__(
             self,
             path_prefix: str,
-            authenticator: JwtAuthenticator,
+            token_manager: TokenManager,
             auth_service: AuthService
     ) -> None:
         """Initialise the authentication controller.
@@ -55,7 +54,7 @@ class AuthController:
             auth_service (AuthService): [description]
         """
         self.path_prefix = path_prefix
-        self.authenticator = authenticator
+        self.token_manager = token_manager
         self.auth_service = auth_service
 
     def add_routes(self, app: Application) -> Application:
@@ -121,7 +120,7 @@ class AuthController:
         authorizations = await self.auth_service.authorizations(user_id)
 
         now = datetime.utcnow()
-        token = self.authenticator.token_manager.encode(
+        token = self.token_manager.encode(
             user_id,
             now,
             now,
@@ -132,21 +131,20 @@ class AuthController:
         return token
 
     @classmethod
-    def _get_redirect(cls, scope: Scope) -> bytes:
+    def _get_redirect(cls, scope: Scope) -> Optional[bytes]:
         query: Dict[bytes, bytes] = dict(parse_qsl(scope['query_string']))
 
         # Get the location where the browser will be redirected to if authentication is successful from the query string.
         redirect = query.get(b'redirect')
-        if not redirect:
-            LOGGER.warning('The login request had no redirect')
-            raise BadRequestError(scope, 'No redirect')
-        urlparts = urlparse(redirect)
-        if urlparts.scheme is None or not urlparts.scheme:
-            LOGGER.warning(
-                'The redirect URL has no scheme: "%s"',
-                redirect
-            )
-            raise BadRequestError(scope, 'Malformed redirect - no scheme')
+        if redirect is not None:
+            # Check it's valid
+            urlparts = urlparse(redirect)
+            if urlparts.scheme is None or not urlparts.scheme:
+                LOGGER.warning(
+                    'The redirect URL has no scheme: "%s"',
+                    redirect
+                )
+                raise BadRequestError(scope, 'Malformed redirect - no scheme')
 
         return redirect
 
@@ -157,16 +155,20 @@ class AuthController:
             _matches: RouteMatches,
             content: Content
     ) -> HttpResponse:
-        redirect = self._get_redirect(scope)
         token = await self._authenticate(scope, content)
-        cookie = self.authenticator.token_manager.make_cookie(token)
-
-        LOGGER.debug('Sending token: %s', token)
+        cookie = self.token_manager.make_cookie(token)
 
         headers = [
-            (b'set-cookie', cookie),
-            (b'location', redirect)
+            (b'set-cookie', cookie)
         ]
+
+        redirect = self._get_redirect(scope)
+        if redirect is not None:
+            headers.append(
+                (b'location', redirect)
+            )
+
+        LOGGER.debug('Sending token: %s', token)
 
         return response_code.FOUND, headers
 
@@ -178,7 +180,7 @@ class AuthController:
             content: Content
     ) -> HttpResponse:
         token = await self._authenticate(scope, content)
-        cookie = self.authenticator.token_manager.make_cookie(token)
+        cookie = self.token_manager.make_cookie(token)
 
         LOGGER.debug('Sending token: %s', token)
 
@@ -196,11 +198,11 @@ class AuthController:
             _content: Content
     ) -> HttpResponse:
         set_cookie = make_cookie(
-            self.authenticator.token_manager.cookie_name,
+            self.token_manager.cookie_name,
             b'',
             expires=timedelta(seconds=0),
-            domain=self.authenticator.token_manager.domain,
-            path=self.authenticator.token_manager.path,
+            domain=self.token_manager.domain,
+            path=self.token_manager.path,
             http_only=True
         )
         return response_code.NO_CONTENT, [(b'set-cookie', set_cookie)]
@@ -213,10 +215,11 @@ class AuthController:
             _content: Content
     ) -> HttpResponse:
         try:
-            token = self.authenticator.token_manager.get_token_from_headers(
+            token = self.token_manager.get_token_from_headers(
                 scope['headers'])
 
-            token_status = self.authenticator.get_token_status(token)
+            token_status = self.token_manager.get_token_status(
+                token)
 
             if token_status == TokenStatus.EXPIRED:
                 token = await self._renew_token(scope)
@@ -227,7 +230,7 @@ class AuthController:
                     'Client requires authentication'
                 )
 
-            payload = self.authenticator.token_manager.decode(token)
+            payload = self.token_manager.decode(token)
 
             return json_response(response_code.OK, None, {'username': payload['sub']})
 
@@ -243,12 +246,12 @@ class AuthController:
             return response_code.INTERNAL_SERVER_ERROR
 
     async def _renew_token(self, scope: Scope) -> bytes:
-        token = self.authenticator.token_manager.get_token_from_headers(
+        token = self.token_manager.get_token_from_headers(
             scope['headers'])
         if token is None:
             raise UnauthorisedError(scope, 'authentication required')
 
-        payload = self.authenticator.token_manager.decode(token)
+        payload = self.token_manager.decode(token)
 
         user_id = payload['sub']
         issued_at = payload['iat']
@@ -261,7 +264,7 @@ class AuthController:
 
         now = datetime.utcnow()
 
-        login_expiry = issued_at + self.authenticator.token_manager.session_expiry
+        login_expiry = issued_at + self.token_manager.session_expiry
         if now > login_expiry:
             LOGGER.info(
                 'Token too old for user "%s" issued at "%s" expired at "%s"',
@@ -282,7 +285,7 @@ class AuthController:
 
         # Renew the token keeping the "issued at" timestamp to ensure
         # reauthentication.
-        token = self.authenticator.token_manager.encode(
+        token = self.token_manager.encode(
             user_id,
             now,
             issued_at,
@@ -308,7 +311,7 @@ class AuthController:
         try:
             token = await self._renew_token(scope)
 
-            set_cookie = self.authenticator.token_manager.make_cookie(token)
+            set_cookie = self.token_manager.make_cookie(token)
 
             return response_code.NO_CONTENT, [(b'set-cookie', set_cookie)]
 
