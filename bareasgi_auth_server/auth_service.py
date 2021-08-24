@@ -3,7 +3,7 @@ Authentication Service
 """
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Mapping, Optional
+from typing import AbstractSet, Optional
 
 
 class AuthService(metaclass=ABCMeta):
@@ -18,22 +18,22 @@ class AuthService(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    async def is_valid_user(self, user_id: str) -> bool:
+    async def is_valid_user(self, user: str) -> bool:
         """Check the user is still valid
 
         Args:
-            user_id (str): The user identifier.
+            user (str): The user identifier.
 
         Returns:
             bool: True if the user is valid otherwise false.
         """
 
     @abstractmethod
-    async def authorizations(self, user_id: str) -> Mapping[str, Any]:
+    async def authorizations(self, user: str) -> AbstractSet[str]:
         """Return the authorizations for the user.
 
         Args:
-            user_id (str): The used identifier.
+            user (str): The used identifier.
 
         Returns:
             Mapping[str, Any]: The authorizations.
