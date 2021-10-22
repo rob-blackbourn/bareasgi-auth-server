@@ -3,38 +3,43 @@ Authentication Service
 """
 
 from abc import ABCMeta, abstractmethod
-from typing import AbstractSet, Optional
+from typing import List
 
 
 class AuthService(metaclass=ABCMeta):
     """A base class for authentication services"""
 
     @abstractmethod
-    async def authenticate(self, **credentials) -> Optional[str]:
+    async def authenticate(self, **credentials) -> str:
         """Authenticate the user.
 
+        Raises:
+            UserUnknownError: When the user is not known.
+            UserCredentialsError: For bad credentials.
+            UserInvalidError: When the user is not valid.
+
         Returns:
-            Optional[str]: The user identifier or None if not authenticated.
+            str: The user identifier.
         """
 
     @abstractmethod
-    async def is_valid_user(self, user: str) -> bool:
+    async def is_valid_user(self, user_id: str) -> bool:
         """Check the user is still valid
 
         Args:
-            user (str): The user identifier.
+            user_id (str): The user identifier.
 
         Returns:
             bool: True if the user is valid otherwise false.
         """
 
     @abstractmethod
-    async def authorizations(self, user: str) -> AbstractSet[str]:
+    async def authorizations(self, user_id: str) -> List[str]:
         """Return the authorizations for the user.
 
         Args:
-            user (str): The used identifier.
+            user_id (str): The used identifier.
 
         Returns:
-            Mapping[str, Any]: The authorizations.
+            List[str]: The authorizations.
         """

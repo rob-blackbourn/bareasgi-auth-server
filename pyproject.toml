@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bareASGI-auth-server"
-version = "1.0.0"
+version = "4.0.0"
 description = "Authentication server for bareASGI"
 authors = ["Rob Blackbourn <rob.blackbourn@gmail.com>"]
 license = "Apache-2.0"
@@ -8,20 +8,22 @@ readme = "README.md"
 packages = [
     { include = "bareasgi_auth_server" },
 ]
+repository = "https://github.com/rob-blackbourn/bareASGI-auth-server"
 
 [tool.poetry.dependencies]
-python = "^3.7"
-bareasgi = "^3.7"
-# bareasgi-auth-common = "^2.0"
-bareasgi-cors = "^3.1"
-bareclient = "^4.6"
-PyJWT = "^1.7"
+python = "^3.8"
+bareasgi = "^4.0"
+bareasgi-auth-common = "^4.0"
+bareasgi-cors = "^4.1"
+bareclient = "^5.0"
+PyJWT = "^2.3"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5"
 mypy = "^0.910"
-pytest = "^3.8"
-pylint = "^2.9"
+pytest = "^6.2"
+pylint = "^2.11"
+Hypercorn = "^0.11.2"
 
 [tool.poetry.extras]
 postgres = [ "aiopg", "sqlalchemy" ]

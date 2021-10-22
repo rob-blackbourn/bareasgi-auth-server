@@ -2,37 +2,37 @@
 """
 
 from datetime import datetime, timedelta
+import json
 import logging
-from typing import Dict, List, Optional
-from urllib.error import HTTPError
+from typing import Dict, Optional
 from urllib.parse import parse_qsl, urlparse
 
 from bareasgi import (
     Application,
     text_reader,
-    json_response
+    text_writer,
+    HttpRequest,
+    HttpResponse
 )
-import bareutils.header as header
-from bareutils import response_code
+from bareutils import header, response_code
 from bareutils.cookies import make_cookie
-from baretypes import (
-    Scope,
-    Info,
-    RouteMatches,
-    Content,
-    HttpResponse,
-    Header
-)
 from bareasgi_auth_common import (
     TokenManager,
     ForbiddenError,
-    UnauthorisedError,
-    TokenStatus
+    UnauthorizedError,
+    TokenStatus,
+    BareASGIError
 )
 import jwt
 
 from .auth_service import AuthService
-from .types import BadRequestError
+from .types import (
+    BadRequestError,
+    UserInvalidError,
+    UserCredentialsError,
+    UserNotFoundError
+)
+from .utils import JSONEncoderEx
 
 LOGGER = logging.getLogger(__name__)
 
@@ -95,25 +95,27 @@ class AuthController:
 
         return app
 
-    async def _authenticate(
-            self,
-            scope: Scope,
-            content: Content
-    ) -> bytes:
-        content_type = header.content_type(scope['headers'])
+    async def _authenticate(self, request: HttpRequest) -> bytes:
+        content_type = header.content_type(request.scope['headers'])
         media_type = None if content_type is None else content_type[0]
-        if media_type != 'application/x-www-form-urlencoded':
+        if media_type != b'application/x-www-form-urlencoded':
+            LOGGER.debug('Invalid media type: %s', media_type)
             raise BadRequestError(
-                scope,
+                request,
                 'Expected content-type to be application/x-www-form-urlencoded'
             )
 
-        credentials = dict(parse_qsl(await text_reader(content)))
+        credentials = dict(parse_qsl(await text_reader(request.body)))
 
-        user_id = await self.auth_service.authenticate(**credentials)
-
-        if user_id is None:
-            raise ForbiddenError(scope, 'Invalid credentials')
+        try:
+            LOGGER.debug('Authenticating')
+            user_id = await self.auth_service.authenticate(**credentials)
+        except (UserNotFoundError, UserCredentialsError) as error:
+            LOGGER.info('Authentication failed')
+            raise UnauthorizedError(request, 'Invalid credentials') from error
+        except UserInvalidError as error:
+            LOGGER.warning('User invalid')
+            raise ForbiddenError(request, 'Invalid user') from error
 
         LOGGER.info('Authenticated: %s', user_id)
 
@@ -131,8 +133,10 @@ class AuthController:
         return token
 
     @classmethod
-    def _get_redirect(cls, scope: Scope) -> Optional[bytes]:
-        query: Dict[bytes, bytes] = dict(parse_qsl(scope['query_string']))
+    def _get_redirect(cls, request: HttpRequest) -> Optional[bytes]:
+        query: Dict[bytes, bytes] = dict(
+            parse_qsl(request.scope['query_string'])
+        )
 
         # Get the location where the browser will be redirected to if authentication is successful from the query string.
         redirect = query.get(b'redirect')
@@ -144,59 +148,84 @@ class AuthController:
                     'The redirect URL has no scheme: "%s"',
                     redirect
                 )
-                raise BadRequestError(scope, 'Malformed redirect - no scheme')
+                raise BadRequestError(
+                    request,
+                    'Malformed redirect - no scheme'
+                )
 
         return redirect
 
-    async def login_redirect(
-            self,
-            scope: Scope,
-            _info: Info,
-            _matches: RouteMatches,
-            content: Content
-    ) -> HttpResponse:
-        token = await self._authenticate(scope, content)
-        cookie = self.token_manager.make_cookie(token)
+    async def login_redirect(self, request: HttpRequest) -> HttpResponse:
+        LOGGER.debug('Handling a login redirect')
 
-        headers = [
-            (b'set-cookie', cookie)
-        ]
+        try:
+            token = await self._authenticate(request)
+            cookie = self.token_manager.make_cookie(token)
 
-        redirect = self._get_redirect(scope)
-        if redirect is not None:
-            headers.append(
-                (b'location', redirect)
+            headers = [
+                (b'set-cookie', cookie)
+            ]
+
+            redirect = self._get_redirect(request)
+            if redirect is not None:
+                headers.append(
+                    (b'location', redirect)
+                )
+
+            LOGGER.debug('Sending token: %s', token)
+
+            return HttpResponse(response_code.FOUND, headers)
+
+        except BareASGIError as error:
+
+            LOGGER.warning('Failed to authenticate: %s', error.message)
+            return HttpResponse(
+                error.status,
+                error.headers,
+                text_writer(error.message) if error.message else None
             )
 
-        LOGGER.debug('Sending token: %s', token)
+        except:  # pylint: disable=bare-except
 
-        return response_code.FOUND, headers
+            LOGGER.exception('Failed to authenticate')
+            return HttpResponse(response_code.INTERNAL_SERVER_ERROR)
 
-    async def login(
-            self,
-            scope: Scope,
-            _info: Info,
-            _matches: RouteMatches,
-            content: Content
-    ) -> HttpResponse:
-        token = await self._authenticate(scope, content)
-        cookie = self.token_manager.make_cookie(token)
+    async def login(self, request: HttpRequest) -> HttpResponse:
+        LOGGER.debug('Handling login')
 
-        LOGGER.debug('Sending token: %s', token)
+        try:
+            LOGGER.debug('Authenticating')
 
-        headers: List[Header] = [
-            (b'set-cookie', cookie)
-        ]
+            token = await self._authenticate(request)
+            cookie = self.token_manager.make_cookie(token)
 
-        return response_code.FOUND, headers
+            LOGGER.debug('Sending token: %s', token)
 
-    async def logout(
-            self,
-            _scope: Scope,
-            _info: Info,
-            __matches: RouteMatches,
-            _content: Content
-    ) -> HttpResponse:
+            headers = [
+                (b'set-cookie', cookie)
+            ]
+
+            return HttpResponse(response_code.FOUND, headers)
+
+        except BareASGIError as error:
+
+            LOGGER.warning('Failed to authenticate: %s', error.message)
+
+            return HttpResponse(
+                error.status,
+                error.headers,
+                text_writer(error.message) if error.message else None
+            )
+
+        except:  # pylint: disable=bare-except
+
+            LOGGER.exception('Failed to authenticate')
+
+            return HttpResponse(response_code.INTERNAL_SERVER_ERROR)
+
+    async def logout(self, _request: HttpRequest) -> HttpResponse:
+        LOGGER.debug("Handling logout request")
+
         set_cookie = make_cookie(
             self.token_manager.cookie_name,
             b'',
@@ -205,51 +234,56 @@ class AuthController:
             path=self.token_manager.path,
             http_only=True
         )
-        return response_code.NO_CONTENT, [(b'set-cookie', set_cookie)]
+        headers = [
+            (b'set-cookie', set_cookie)
+        ]
+        return HttpResponse(response_code.NO_CONTENT, headers)
 
-    async def who_am_i(
-            self,
-            scope: Scope,
-            _info: Info,
-            _matches: RouteMatches,
-            _content: Content
-    ) -> HttpResponse:
+    async def who_am_i(self, request: HttpRequest) -> HttpResponse:
+        LOGGER.debug("Handling whoami request")
+
         try:
-            token = self.token_manager.get_token_from_headers(
-                scope['headers'])
-
-            token_status = self.token_manager.get_token_status(
-                token)
-
-            if token_status == TokenStatus.EXPIRED:
-                token = await self._renew_token(scope)
-
-            if token is None:
-                raise UnauthorisedError(
-                    scope,
+            token = self.token_manager.get_token_from_headers(request)
+            token_status = self.token_manager.get_token_status(token)
+            if token is None or token_status == TokenStatus.MISSING:
+                LOGGER.debug('No token found')
+                raise UnauthorizedError(
+                    request,
                     'Client requires authentication'
                 )
+            elif token_status == TokenStatus.EXPIRED:
+                LOGGER.debug('Token expired')
+                token = await self._renew_token(request)
 
             payload = self.token_manager.decode(token)
+            body = text_writer(json.dumps(payload, cls=JSONEncoderEx))
 
-            return json_response(response_code.OK, None, {'username': payload['sub']})
+            LOGGER.debug("Sending JWT payload: %s", payload)
 
-        except HTTPError:
-            raise
+            return HttpResponse(response_code.OK, None, body)
 
-        except (jwt.exceptions.ExpiredSignature, PermissionError):
+        except BareASGIError as error:
+            return HttpResponse(
+                error.status,
+                error.headers,
+                text_writer(error.message) if error.message else None
+            )
+
+        except (jwt.exceptions.ExpiredSignatureError, PermissionError):
             LOGGER.exception('JWT encoding failed')
-            return response_code.UNAUTHORIZED
+            return HttpResponse(response_code.UNAUTHORIZED)
 
         except:  # pylint: disable=bare-except
             LOGGER.exception('Failed to re-sign the token')
-            return response_code.INTERNAL_SERVER_ERROR
+            return HttpResponse(response_code.INTERNAL_SERVER_ERROR)
 
-    async def _renew_token(self, scope: Scope) -> bytes:
-        token = self.token_manager.get_token_from_headers(
-            scope['headers'])
+    async def _renew_token(self, request: HttpRequest) -> bytes:
+        LOGGER.debug('Renewing token')
+
+        token = self.token_manager.get_token_from_headers(request)
         if token is None:
-            raise UnauthorisedError(scope, 'authentication required')
+            LOGGER.debug('Token not found')
+            raise UnauthorizedError(request, 'authentication required')
 
         payload = self.token_manager.decode(token)
 
@@ -272,19 +306,19 @@ class AuthController:
                 issued_at,
                 login_expiry
             )
-            raise UnauthorisedError(scope, 'login expired')
+            raise UnauthorizedError(request, 'login expired')
 
         if not await self.auth_service.is_valid_user(user_id):
             LOGGER.warning(
                 'User "%s" is no longer valid',
                 user_id
             )
-            raise ForbiddenError(scope, 'invalid user')
+            raise ForbiddenError(request, 'invalid user')
 
         authorizations = await self.auth_service.authorizations(user_id)
 
         # Renew the token keeping the "issued at" timestamp to ensure
-        # reauthentication.
+        # re-authentication.
         token = self.token_manager.encode(
             user_id,
             now,
@@ -301,23 +335,26 @@ class AuthController:
 
         return token
 
-    async def renew_token(
-            self,
-            scope: Scope,
-            _info: Info,
-            _matches: RouteMatches,
-            _content: Content
-    ) -> HttpResponse:
+    async def renew_token(self, request: HttpRequest) -> HttpResponse:
+        LOGGER.debug('Handling renew-token request')
+
         try:
-            token = await self._renew_token(scope)
+            token = await self._renew_token(request)
 
             set_cookie = self.token_manager.make_cookie(token)
+            headers = [
+                (b'set-cookie', set_cookie)
+            ]
 
-            return response_code.NO_CONTENT, [(b'set-cookie', set_cookie)]
+            return HttpResponse(response_code.NO_CONTENT, headers)
 
-        except HTTPError:
-            raise
+        except BareASGIError as error:
+            return HttpResponse(
+                error.status,
+                error.headers,
+                text_writer(error.message) if error.message else None
+            )
 
         except:  # pylint: disable=bare-except
             LOGGER.exception('Failed to renew token')
-            return response_code.INTERNAL_SERVER_ERROR
+            return HttpResponse(response_code.INTERNAL_SERVER_ERROR)
