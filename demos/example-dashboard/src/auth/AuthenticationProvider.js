@@ -4,14 +4,15 @@ import PropTypes from 'prop-types'
 import AuthenticationContext from './AuthenticationContext'
 
 class Authenticator {
-  constructor(host, path) {
+  constructor(host, loginPath, whoamiPath) {
     this.host = host
-    this.path = path
+    this.loginPath = loginPath
+    this.whoamiPath = whoamiPath
   }
 
   requestAuthentication() {
     const { protocol, href } = window.location
-    const url = `${protocol}//${this.host}${this.path}?redirect=${href}`
+    const url = `${protocol}//${this.host}${this.loginPath}?redirect=${href}`
     window.location.replace(url)
   }
 
@@ -28,7 +29,11 @@ class Authenticator {
 class AuthenticationProvider extends Component {
   constructor(props) {
     super(props)
-    this.authenticator = new Authenticator(this.props.host, this.props.path)
+    this.authenticator = new Authenticator(
+      this.props.host,
+      this.props.loginPath,
+      this.props.whoamiPath
+    )
   }
 
   render() {
@@ -42,7 +47,8 @@ class AuthenticationProvider extends Component {
 
 AuthenticationProvider.propTypes = {
   host: PropTypes.string.isRequired,
-  path: PropTypes.string.isRequired
+  loginPath: PropTypes.string.isRequired,
+  whoamiPath: PropTypes.string.isRequired
 }
 
 export default AuthenticationProvider

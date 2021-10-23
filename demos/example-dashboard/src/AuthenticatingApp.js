@@ -1,7 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import config from './config'
 
+import config from './config'
+import AuthenticatedApp from './AuthenticatedApp'
 class AuthenticatingApp extends React.Component {
   componentDidMount() {
     const { authenticator } = this.props
@@ -27,32 +28,15 @@ class AuthenticatingApp extends React.Component {
         console.log(error)
       })
 
-    authenticator
-      .fetch(`${window.location.origin}/example/api/hello`)
-      .then(response => {
-        switch (response.status) {
-          case 200:
-            return response.text()
-          default:
-            throw Error('request failed')
-        }
-      })
-      .then(text => {
-        console.log(text)
-      })
-      .catch(error => {
-        console.log(error)
-      })
   }
 
   render() {
-    return this.props.component
+    return <AuthenticatedApp authenticator={this.props.authenticator} />
   }
 }
 
 AuthenticatingApp.propTypes = {
-  authenticator: PropTypes.object.isRequired,
-  component: PropTypes.node.isRequired
+  authenticator: PropTypes.object.isRequired
 }
 
 export default AuthenticatingApp

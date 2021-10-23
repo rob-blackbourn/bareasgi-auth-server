@@ -3,6 +3,7 @@ import asyncio
 from datetime import timedelta
 import logging
 import logging.config
+import ssl
 
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
@@ -47,10 +48,11 @@ async def main_async():
         []
     )
 
-    app.http_router.add({'GET'}, '/example/api/test', hello)
+    app.http_router.add({'GET'}, '/example/api/hello', hello)
 
     config = Config()
     config.bind = ["0.0.0.0:10010"]
+    # config.verify_mode = ssl.VerifyMode.CERT_NONE
 
     await serve(app, config)  # type: ignore
 

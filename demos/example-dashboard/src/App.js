@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { AuthenticationProvider, AuthenticationConsumer } from './auth'
 import AuthenticatingApp from './AuthenticatingApp'
-import AuthenticatedApp from './AuthenticatedApp'
 import config from './config'
 
 class App extends Component {
@@ -9,15 +8,11 @@ class App extends Component {
     return (
       <AuthenticationProvider
         host={window.location.host}
-        path={config.loginPath}
+        loginPath={config.loginPath}
+        whoamiPath={config.whoamiPath}
       >
         <AuthenticationConsumer>
-          {authenticator => (
-            <AuthenticatingApp
-              authenticator={authenticator}
-              component={<AuthenticatedApp />}
-            />
-          )}
+          {authenticator => <AuthenticatingApp authenticator={authenticator} />}
         </AuthenticationConsumer>
       </AuthenticationProvider>
     )

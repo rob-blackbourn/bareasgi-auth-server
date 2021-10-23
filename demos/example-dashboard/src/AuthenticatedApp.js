@@ -1,5 +1,7 @@
 import React from 'react'
-import { Route } from 'react-router-dom'
+import { Route, Redirect } from 'react-router-dom'
+import PropTypes from 'prop-types'
+
 import DashboardRouter from './components/DashboardRouter'
 import Page1 from './components/Page1'
 import Page2 from './components/Page2'
@@ -67,23 +69,35 @@ const LINKS = [
   }
 ]
 
-function AuthenticatedApp() {
-  return (
-    <DashboardRouter
-      title="Example Dashboard"
-      basename="/example/ui"
-      applications={APPLICATIONS}
-      links={LINKS}
-      routes={
-        <>
-          <Route exact path="/" component={Page1} />
-          <Route exact path="/first-page" component={Page1} />
-          <Route exact path="/second-page" component={Page2} />
-          <Route exact path="/third-page" component={Page3} />
-        </>
-      }
-    />
-  )
+class AuthenticatedApp extends React.Component {
+  render() {
+    return (
+      <DashboardRouter
+        title="Example Dashboard"
+        basename="/example/ui"
+        applications={APPLICATIONS}
+        links={LINKS}
+        routes={
+          <>
+            <Redirect exact from="/" to="/first-page" />
+            <Route
+              exact
+              path="/first-page"
+              render={props => (
+                <Page1 title="hello" {...props} {...this.props} />
+              )}
+            />
+            <Route exact path="/second-page" component={Page2} />
+            <Route exact path="/third-page" component={Page3} />
+          </>
+        }
+      />
+    )
+  }
+}
+
+AuthenticatedApp.propTypes = {
+  authenticator: PropTypes.object.isRequired
 }
 
 export default AuthenticatedApp
