@@ -12,7 +12,7 @@ class App extends Component {
         whoamiPath={config.whoamiPath}
       >
         <AuthenticationConsumer>
-          {authenticator => <AuthenticatingApp authenticator={authenticator} />}
+          {authFetch => <AuthenticatingApp authFetch={authFetch} />}
         </AuthenticationConsumer>
       </AuthenticationProvider>
     )

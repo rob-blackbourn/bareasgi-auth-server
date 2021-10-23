@@ -8,8 +8,7 @@ export default class Page1 extends React.Component {
   }
 
   componentDidMount() {
-    this.props.authenticator
-      .fetch(`${window.location.origin}/example/api/hello`)
+    this.props.authFetch(`${window.location.origin}/example/api/hello`)
       .then(response => {
         switch (response.status) {
           case 200:

@@ -3,16 +3,15 @@ import PropTypes from 'prop-types'
 
 import AuthenticationContext from './AuthenticationContext'
 
-class Authenticator {
-  constructor(host, loginPath, whoamiPath) {
-    this.host = host
-    this.loginPath = loginPath
-    this.whoamiPath = whoamiPath
+class AuthenticationProvider extends Component {
+  state = {
+    authCredentials: {}
   }
 
   requestAuthentication() {
+    const { host, loginPath } = this.props
     const { protocol, href } = window.location
-    const url = `${protocol}//${this.host}${this.loginPath}?redirect=${href}`
+    const url = `${protocol}//${host}${loginPath}?redirect=${href}`
     window.location.replace(url)
   }
 
@@ -24,21 +23,29 @@ class Authenticator {
       return response
     })
   }
-}
 
-class AuthenticationProvider extends Component {
-  constructor(props) {
-    super(props)
-    this.authenticator = new Authenticator(
-      this.props.host,
-      this.props.loginPath,
-      this.props.whoamiPath
-    )
+  componentDidMount() {
+    this.fetch(`${window.location.origin}${this.props.whoamiPath}`)
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            return response.json()
+          default:
+            throw Error('request failed')
+        }
+      })
+      .then(authCredentials => {
+        this.setState({ authCredentials })
+        console.log(authCredentials)
+      })
+      .catch(error => {
+        console.log(error)
+      })
   }
 
   render() {
     return (
-      <AuthenticationContext.Provider value={this.authenticator}>
+      <AuthenticationContext.Provider value={this.fetch}>
         {this.props.children}
       </AuthenticationContext.Provider>
     )
