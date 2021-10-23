@@ -108,3 +108,5 @@ venv.bak/
 
 # Visual studio code
 .vscode/
+
+bareasgi_auth_common

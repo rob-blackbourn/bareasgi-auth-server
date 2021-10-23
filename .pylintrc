@@ -1,5 +1,5 @@
 [BASIC]
-good-names=logger
+good-names=logger,cn
 
 [TYPECHECK]
 ignored-classes=EasyDict
