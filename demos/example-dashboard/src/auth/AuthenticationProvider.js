@@ -7,7 +7,13 @@ class AuthenticationProvider extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      authCredentials: {}
+      authCredentials: {
+        sub: '',
+        iss: '',
+        exp: '',
+        iat: '',
+        authorizations: []
+      }
     }
     this.abortController = new AbortController()
     this.fetch = this.fetch.bind(this)

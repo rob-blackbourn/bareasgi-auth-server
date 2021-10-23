@@ -74,6 +74,7 @@ class Site extends React.Component {
     return (
       <DashboardRouter
         title="Example Dashboard"
+        username={this.props.authCredentials.sub}
         basename="/example/ui"
         applications={APPLICATIONS}
         links={LINKS}

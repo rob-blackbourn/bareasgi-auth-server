@@ -16,11 +16,9 @@ import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
-import Badge from '@mui/material/Badge'
 import Container from '@mui/material/Container'
 import MenuIcon from '@mui/icons-material/Menu'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import NotificationsIcon from '@mui/icons-material/Notifications'
 import Tooltip from '@mui/material/Tooltip'
 
 const drawerWidth = 240
@@ -73,7 +71,7 @@ const mdTheme = createTheme()
 
 export default class DashboardRouter extends React.Component {
   state = {
-    open: true
+    open: false
   }
 
   handleToggleDrawer = () => {
@@ -82,7 +80,8 @@ export default class DashboardRouter extends React.Component {
 
   render() {
     const { open } = this.state
-    const { basename, title, applications, links, routes } = this.props
+    const { basename, title, applications, links, routes, username } =
+      this.props
 
     return (
       <BrowserRouter basename={basename}>
@@ -119,11 +118,14 @@ export default class DashboardRouter extends React.Component {
                   {title}
                 </Typography>
 
-                <IconButton color="inherit">
-                  <Badge badgeContent={4} color="secondary">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
+                <Typography
+                  component="h4"
+                  variant="subtitle1"
+                  color="inherit"
+                  noWrap
+                >
+                  {username}
+                </Typography>
               </Toolbar>
             </AppBar>
 
@@ -215,6 +217,7 @@ export default class DashboardRouter extends React.Component {
 
 DashboardRouter.propTypes = {
   title: PropTypes.string.isRequired,
+  username: PropTypes.string,
   basename: PropTypes.string.isRequired,
   applications: PropTypes.array.isRequired,
   links: PropTypes.array.isRequired,
