@@ -69,7 +69,7 @@ const LINKS = [
   }
 ]
 
-class AuthenticatedApp extends React.Component {
+class Site extends React.Component {
   render() {
     return (
       <DashboardRouter
@@ -96,8 +96,9 @@ class AuthenticatedApp extends React.Component {
   }
 }
 
-AuthenticatedApp.propTypes = {
-  authenticator: PropTypes.object.isRequired
+Site.propTypes = {
+  authFetch: PropTypes.func.isRequired,
+  authCredentials: PropTypes.object.isRequired
 }
 
-export default AuthenticatedApp
+export default Site

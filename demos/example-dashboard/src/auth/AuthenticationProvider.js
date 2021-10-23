@@ -4,20 +4,29 @@ import PropTypes from 'prop-types'
 import AuthenticationContext from './AuthenticationContext'
 
 class AuthenticationProvider extends Component {
-  state = {
-    authCredentials: {}
+  constructor(props) {
+    super(props)
+    this.state = {
+      authCredentials: {}
+    }
+    this.abortController = new AbortController()
+    this.fetch = this.fetch.bind(this)
   }
 
   requestAuthentication() {
-    const { host, loginPath } = this.props
-    const { protocol, href } = window.location
+    const { loginPath } = this.props
+    const { protocol, host, href } = window.location
     const url = `${protocol}//${host}${loginPath}?redirect=${href}`
     window.location.replace(url)
   }
 
   fetch(input, init = {}) {
-    return fetch(input, init).then(response => {
-      if (response.status === 401) {
+    return fetch(input, {
+      ...init,
+      redirect: 'manual',
+      signal: this.abortController.signal
+    }).then(response => {
+      if (response.status === 401 || response.type === 'opaqueredirect') {
         this.requestAuthentication()
       }
       return response
@@ -43,9 +52,18 @@ class AuthenticationProvider extends Component {
       })
   }
 
+  componentWillUnmount() {
+    this.abortController.abort()
+  }
+
   render() {
     return (
-      <AuthenticationContext.Provider value={this.fetch}>
+      <AuthenticationContext.Provider
+        value={{
+          authFetch: this.fetch,
+          authCredentials: this.state.authCredentials
+        }}
+      >
         {this.props.children}
       </AuthenticationContext.Provider>
     )
@@ -53,7 +71,6 @@ class AuthenticationProvider extends Component {
 }
 
 AuthenticationProvider.propTypes = {
-  host: PropTypes.string.isRequired,
   loginPath: PropTypes.string.isRequired,
   whoamiPath: PropTypes.string.isRequired
 }

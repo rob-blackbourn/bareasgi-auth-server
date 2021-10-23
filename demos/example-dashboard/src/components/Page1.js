@@ -8,7 +8,8 @@ export default class Page1 extends React.Component {
   }
 
   componentDidMount() {
-    this.props.authFetch(`${window.location.origin}/example/api/hello`)
+    this.props
+      .authFetch(`${window.location.origin}/example/api/hello`)
       .then(response => {
         switch (response.status) {
           case 200:
@@ -22,7 +23,7 @@ export default class Page1 extends React.Component {
         console.log(text)
       })
       .catch(error => {
-        this.setState({ text: error, isLoaded: true, isError: true })
+        this.setState({ text: error + '', isLoaded: true, isError: true })
       })
   }
   render() {
