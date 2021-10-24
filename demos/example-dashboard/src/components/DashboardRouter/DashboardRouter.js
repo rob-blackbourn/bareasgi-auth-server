@@ -2,70 +2,27 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import { BrowserRouter, Link as BrowserLink } from 'react-router-dom'
 
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
-import MuiDrawer from '@mui/material/Drawer'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+
 import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import CssBaseline from '@mui/material/CssBaseline'
+import Divider from '@mui/material/Divider'
+import Icon from '@mui/material/Icon'
+import IconButton from '@mui/material/IconButton'
+import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
-import Icon from '@mui/material/Icon'
-import MuiAppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
-import List from '@mui/material/List'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import Container from '@mui/material/Container'
+
 import MenuIcon from '@mui/icons-material/Menu'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import Tooltip from '@mui/material/Tooltip'
 
-const drawerWidth = 240
-
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: prop => prop !== 'open'
-})(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen
-    })
-  })
-}))
-
-const Drawer = styled(MuiDrawer, {
-  shouldForwardProp: prop => prop !== 'open'
-})(({ theme, open }) => ({
-  '& .MuiDrawer-paper': {
-    position: 'relative',
-    whiteSpace: 'nowrap',
-    width: drawerWidth,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen
-    }),
-    boxSizing: 'border-box',
-    ...(!open && {
-      overflowX: 'hidden',
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen
-      }),
-      width: theme.spacing(7),
-      [theme.breakpoints.up('sm')]: {
-        width: theme.spacing(9)
-      }
-    })
-  }
-}))
+import StyledAppBar from './StyledAppBar'
+import StyledDrawer from './StyledDrawer'
 
 const mdTheme = createTheme()
 
@@ -80,7 +37,7 @@ export default class DashboardRouter extends React.Component {
 
   render() {
     const { open } = this.state
-    const { basename, title, applications, links, routes, username } =
+    const { basename, title, applications, links, routes, appBarItems } =
       this.props
 
     return (
@@ -89,7 +46,7 @@ export default class DashboardRouter extends React.Component {
           <Box sx={{ display: 'flex' }}>
             <CssBaseline />
 
-            <AppBar position="absolute" open={open}>
+            <StyledAppBar position="absolute" open={open}>
               <Toolbar
                 sx={{
                   pr: '24px' // keep right padding when drawer closed
@@ -118,18 +75,11 @@ export default class DashboardRouter extends React.Component {
                   {title}
                 </Typography>
 
-                <Typography
-                  component="h4"
-                  variant="subtitle1"
-                  color="inherit"
-                  noWrap
-                >
-                  {username}
-                </Typography>
+                {appBarItems && appBarItems}
               </Toolbar>
-            </AppBar>
+            </StyledAppBar>
 
-            <Drawer variant="permanent" open={open}>
+            <StyledDrawer variant="permanent" open={open}>
               <Toolbar
                 sx={{
                   display: 'flex',
@@ -188,7 +138,7 @@ export default class DashboardRouter extends React.Component {
                   </Tooltip>
                 ))}
               </List>
-            </Drawer>
+            </StyledDrawer>
 
             <Box
               component="main"
@@ -217,9 +167,9 @@ export default class DashboardRouter extends React.Component {
 
 DashboardRouter.propTypes = {
   title: PropTypes.string.isRequired,
-  username: PropTypes.string,
   basename: PropTypes.string.isRequired,
   applications: PropTypes.array.isRequired,
   links: PropTypes.array.isRequired,
-  routes: PropTypes.node.isRequired
+  routes: PropTypes.node.isRequired,
+  appBarItems: PropTypes.node
 }

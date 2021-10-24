@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { AuthenticatedApp } from './auth'
+
+import { AuthenticatedApp } from './components'
 import Site from './Site'
 import config from './config'
 
