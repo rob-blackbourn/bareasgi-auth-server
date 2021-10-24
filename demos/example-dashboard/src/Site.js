@@ -13,7 +13,7 @@ class Site extends React.Component {
       <DashboardRouter
         title="Example Dashboard"
         basename="/example/ui"
-        applications={[
+        sites={[
           {
             code: 'app1',
             title: 'Application 1',
@@ -29,7 +29,7 @@ class Site extends React.Component {
             iconName: 'album'
           }
         ]}
-        links={[
+        pages={[
           {
             code: 'page1',
             title: 'First Page',
