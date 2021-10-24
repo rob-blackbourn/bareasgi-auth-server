@@ -4,9 +4,8 @@ import PropTypes from 'prop-types'
 
 import Typography from '@mui/material/Typography'
 
-import { DashboardRouter } from './components'
+import DashboardRouter from '@barejs/dashboard-router'
 import { Page1, Page2, Page3 } from './pages'
-
 
 class Site extends React.Component {
   render() {

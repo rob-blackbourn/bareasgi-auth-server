@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 
-import { AuthenticatedApp } from './components'
+import { AuthenticatedApp } from '@barejs/auth-provider'
 import Site from './Site'
 import config from './config'
 

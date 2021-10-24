@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography'
 export default function Page2() {
   return (
     <Box>
-      <Typography variant="h1">Page 2</Typography>
+      <Typography variant="h1">Page Two</Typography>
     </Box>
   )
 }
