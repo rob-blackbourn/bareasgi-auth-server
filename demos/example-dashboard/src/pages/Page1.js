@@ -1,5 +1,8 @@
 import React from 'react'
 
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+
 export default class Page1 extends React.Component {
   state = {
     isLoaded: false,
@@ -30,15 +33,18 @@ export default class Page1 extends React.Component {
     const { isLoaded, isError, text } = this.state
 
     return (
-      <div>
-        <h2>Page 1</h2>
-        <h4>isLoaded</h4>
-        <p>{isLoaded ? 'yes' : 'no'}</p>
-        <h4>isError</h4>
-        <p>{isError ? 'yes' : 'no'}</p>
-        <h4>text</h4>
-        <p>{text}</p>
-      </div>
+      <Box>
+        <Typography variant="h1">Page 1</Typography>
+        <Typography variant="body1">
+          This page loads a resource from an authenticated API server.
+        </Typography>
+        <Typography variant="h4">isLoaded</Typography>
+        <Typography variant="body1">{isLoaded ? 'yes' : 'no'}</Typography>
+        <Typography variant="h4">isError</Typography>
+        <Typography variant="body1">{isError ? 'yes' : 'no'}</Typography>
+        <Typography variant="h4">text</Typography>
+        <Typography variant="body1">{text}</Typography>
+      </Box>
     )
   }
 }

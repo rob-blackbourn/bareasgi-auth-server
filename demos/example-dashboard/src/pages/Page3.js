@@ -1,5 +1,12 @@
 import React from 'react'
 
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+
 export default function Page3() {
-  return <div>Page 3</div>
+  return (
+    <Box>
+      <Typography variant="h1">Page 3</Typography>
+    </Box>
+  )
 }
