@@ -349,6 +349,7 @@ class AuthController:
             return HttpResponse(response_code.NO_CONTENT, headers)
 
         except BareASGIError as error:
+            LOGGER.exception('Failed to renew token')
             return HttpResponse(
                 error.status,
                 error.headers,
