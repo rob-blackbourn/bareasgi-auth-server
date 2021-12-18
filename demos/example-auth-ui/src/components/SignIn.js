@@ -1,4 +1,5 @@
 import * as React from 'react'
+import PropTypes from 'prop-types'
 import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -83,7 +84,10 @@ export default class SignIn extends React.Component {
 
   checkAuthentication = () => {
     console.log('checkAuthentication')
-    fetch('/auth/api/whoami')
+    const { protocol, host } = window.location
+    const url = `${protocol}//${host}${this.props.whoamiPath}`
+    console.log('checkAuthentication', url)
+    fetch(url)
       .then(response => {
         this.handleCheckAuthentication(response)
       })
@@ -101,7 +105,9 @@ export default class SignIn extends React.Component {
   }
 
   authenticate = (username, password) => {
-    const url = '/auth/api/login?redirect=' + this.redirect
+    const { protocol, host } = window.location
+    const url = new URL(this.props.loginPath, `${protocol}//${host}`)
+    url.searchParams.append("redirect", this.redirect)
     fetch(url, {
       method: 'POST',
       headers: {
@@ -134,6 +140,7 @@ export default class SignIn extends React.Component {
   }
 
   componentDidMount() {
+    debugger
     this.checkAuthentication()
   }
 
@@ -235,4 +242,9 @@ export default class SignIn extends React.Component {
       </ThemeProvider>
     )
   }
+}
+
+SignIn.propTypes = {
+  whoamiPath: PropTypes.string.isRequired,
+  loginPath: PropTypes.string.isRequired
 }

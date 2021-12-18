@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@barejs/auth-provider": "^0.2.0",
+    "@barejs/auth-provider": "^0.5.0",
     "@barejs/dashboard-router": "^0.2.0",
+    "@barejs/graphql-observable": "^5.0.6",
     "@emotion/react": "^11.5.0",
     "@emotion/styled": "^11.3.0",
     "@fontsource/roboto": "^4.5.1",

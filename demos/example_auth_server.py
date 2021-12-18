@@ -78,14 +78,17 @@ async def main_async():
     LOGGER.debug('Starting server')
     app = Application()
 
+    lease_expiry = timedelta(minutes=1)
+    session_expiry = timedelta(minutes=2)
+
     token_manager = TokenManager(
         "A secret of less than 15 characters",
-        timedelta(hours=1),
+        lease_expiry,
         "jetblack.net",
         'bareasgi-auth',
         'jetblack.net',
         '/',
-        timedelta(days=1)
+        session_expiry
     )
     auth_controller = AuthController(
         '/auth/api',
@@ -95,7 +98,7 @@ async def main_async():
     auth_controller.add_routes(app)
 
     config = Config()
-    config.bind = ["0.0.0.0:10001"]
+    config.bind = ["0.0.0.0:10000"]
 
     await serve(app, config)  # type: ignore
 

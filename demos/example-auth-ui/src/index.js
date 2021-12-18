@@ -6,7 +6,7 @@ import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 
-import App from './components/SignIn'
+import App from './App'
 import reportWebVitals from './reportWebVitals'
 
 ReactDOM.render(
