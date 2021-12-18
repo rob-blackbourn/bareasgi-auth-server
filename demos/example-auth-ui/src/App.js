@@ -3,7 +3,7 @@ import SignIn from './components/SignIn'
 
 class App extends Component {
   render() {
-    return <SignIn />
+    return <SignIn whoamiPath="/auth/api/whoami" loginPath="/auth/api/login" />
   }
 }
 

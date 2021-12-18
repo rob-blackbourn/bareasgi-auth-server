@@ -1,20 +1,83 @@
+"""Example API server"""
 
 import asyncio
 from datetime import timedelta
 import logging
 import logging.config
-import ssl
+import socket
+from typing import Any, List, TypedDict
 
+from graphql import (
+    GraphQLSchema,
+    GraphQLObjectType,
+    GraphQLField,
+    GraphQLNonNull,
+    GraphQLString,
+    GraphQLResolveInfo,
+    GraphQLList
+)
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
 from bareasgi import Application, HttpRequest, HttpResponse, text_writer
 from bareasgi_cors import add_cors_middleware
+from bareasgi_graphql_next import add_graphql_next
 from bareutils import response_code
 
 from bareasgi_auth_common import add_jwt_auth_middleware
 
 LOGGER = logging.getLogger('example')
+
+
+def getdomainname() -> str:
+    hostname = socket.gethostname()
+    fqdn = socket.getfqdn()
+    return fqdn[len(hostname)+1:]
+
+
+class Person(TypedDict):
+    firstName: str
+    lastName: str
+
+
+PEOPLE: List[Person] = [
+    {
+        'firstName': 'rob',
+        'lastName': 'blackbourn'
+    },
+    {
+        'firstName': 'ann-marie',
+        'lastName': 'dutton'
+    }
+]
+
+
+async def people_resolver(_obj: Any, _info: GraphQLResolveInfo) -> List[Person]:
+    return PEOPLE
+
+PersonType = GraphQLObjectType(
+    'Person',
+    fields=lambda: {
+        'firstName': GraphQLField(GraphQLNonNull(GraphQLString)),
+        'lastName': GraphQLField(GraphQLNonNull(GraphQLString)),
+    }
+)
+
+PeopleQuery = GraphQLField(
+    GraphQLNonNull(GraphQLList(GraphQLNonNull(PersonType))),
+    resolve=people_resolver
+)
+
+QueriesType = GraphQLObjectType(
+    'Queries',
+    fields=lambda: {
+        "people": PeopleQuery
+    }
+)
+
+SCHEMA = GraphQLSchema(
+    query=QueriesType
+)
 
 
 async def hello(_request: HttpRequest) -> HttpResponse:
@@ -34,21 +97,28 @@ async def main_async():
 
     add_cors_middleware(app)
 
+    domain = getdomainname()
+    issuer = domain
+    lease_expiry = timedelta(minutes=1)
+    session_expiry = timedelta(minutes=2)
+
     add_jwt_auth_middleware(
         app,
         "A secret of less than 15 characters",
-        timedelta(hours=1),
-        "jetblack.net",
+        lease_expiry,
+        issuer,
         'bareasgi-auth',
-        'jetblack.net',
+        domain,
         '/',
-        timedelta(days=1),
+        session_expiry,
         '/auth/api/renew_token',
         '/auth/ui/login',
         []
     )
 
     app.http_router.add({'GET'}, '/example/api/hello', hello)
+
+    add_graphql_next(app, SCHEMA, path_prefix='/example/api')
 
     config = Config()
     config.bind = ["0.0.0.0:10010"]

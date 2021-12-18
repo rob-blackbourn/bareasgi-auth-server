@@ -4,7 +4,8 @@ import asyncio
 from datetime import timedelta
 import logging
 import logging.config
-from typing import List, Any, Dict, Optional
+import socket
+from typing import List, Any, Dict
 
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
@@ -19,6 +20,12 @@ from bareasgi_auth_server import (
 )
 
 LOGGER = logging.getLogger('example')
+
+
+def getdomainname() -> str:
+    hostname = socket.gethostname()
+    fqdn = socket.getfqdn()
+    return fqdn[len(hostname)+1:]
 
 
 class MockAuthService(AuthService):
@@ -78,14 +85,19 @@ async def main_async():
     LOGGER.debug('Starting server')
     app = Application()
 
+    domain = getdomainname()
+    issuer = domain
+    lease_expiry = timedelta(minutes=1)
+    session_expiry = timedelta(minutes=2)
+
     token_manager = TokenManager(
         "A secret of less than 15 characters",
-        timedelta(hours=1),
-        "jetblack.net",
+        lease_expiry,
+        issuer,
         'bareasgi-auth',
-        'jetblack.net',
+        domain,
         '/',
-        timedelta(days=1)
+        session_expiry
     )
     auth_controller = AuthController(
         '/auth/api',
@@ -95,7 +107,7 @@ async def main_async():
     auth_controller.add_routes(app)
 
     config = Config()
-    config.bind = ["0.0.0.0:10001"]
+    config.bind = ["0.0.0.0:10000"]
 
     await serve(app, config)  # type: ignore
 
