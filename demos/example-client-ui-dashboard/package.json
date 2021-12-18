@@ -1,5 +1,5 @@
 {
-  "name": "example-dashboard",
+  "name": "example-client-ui-dashboard",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

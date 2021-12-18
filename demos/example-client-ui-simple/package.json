@@ -1,5 +1,5 @@
 {
-  "name": "example-test-ui",
+  "name": "example-client-ui-simple",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
