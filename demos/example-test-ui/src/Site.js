@@ -4,16 +4,15 @@ import CssBaseline from '@mui/material/CssBaseline'
 import Typography from '@mui/material/Typography'
 import config from './config'
 
-class AuthenticatedApp extends Component {
+class Site extends Component {
   componentDidMount() {
-    const { authenticator } = this.props
+    const { authFetch } = this.props
 
-    if (!authenticator) {
+    if (!authFetch) {
       console.log('Invalid authenticator')
     }
 
-    authenticator
-      .fetch(`${window.location.origin}${config.whoamiPath}`)
+    authFetch(`${window.location.origin}${config.whoamiPath}`)
       .then(response => {
         switch (response.status) {
           case 200:
@@ -29,8 +28,7 @@ class AuthenticatedApp extends Component {
         console.log(error)
       })
 
-    authenticator
-      .fetch(`${window.location.origin}/example/api/hello`)
+    authFetch(`${window.location.origin}/example/api/hello`)
       .then(response => {
         switch (response.status) {
           case 200:
@@ -59,8 +57,10 @@ class AuthenticatedApp extends Component {
   }
 }
 
-AuthenticatedApp.propTypes = {
-  authenticator: PropTypes.object.isRequired
+Site.propTypes = {
+  authFetch: PropTypes.func.isRequired,
+  authCredentials: PropTypes.any.isRequired,
+  authRedirect: PropTypes.func.isRequired
 }
 
-export default AuthenticatedApp
+export default Site
