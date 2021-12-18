@@ -4,6 +4,7 @@ import asyncio
 from datetime import timedelta
 import logging
 import logging.config
+import socket
 from typing import Any, List, TypedDict
 
 from graphql import (
@@ -26,6 +27,12 @@ from bareutils import response_code
 from bareasgi_auth_common import add_jwt_auth_middleware
 
 LOGGER = logging.getLogger('example')
+
+
+def getdomainname() -> str:
+    hostname = socket.gethostname()
+    fqdn = socket.getfqdn()
+    return fqdn[len(hostname)+1:]
 
 
 class Person(TypedDict):
@@ -90,6 +97,8 @@ async def main_async():
 
     add_cors_middleware(app)
 
+    domain = getdomainname()
+    issuer = domain
     lease_expiry = timedelta(minutes=1)
     session_expiry = timedelta(minutes=2)
 
@@ -97,9 +106,9 @@ async def main_async():
         app,
         "A secret of less than 15 characters",
         lease_expiry,
-        "jetblack.net",
+        issuer,
         'bareasgi-auth',
-        'jetblack.net',
+        domain,
         '/',
         session_expiry,
         '/auth/api/renew_token',
